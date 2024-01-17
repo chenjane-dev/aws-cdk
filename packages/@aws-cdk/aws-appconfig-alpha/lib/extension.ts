@@ -319,7 +319,7 @@ export interface ExtensionAttributes {
    *
    * @default - None.
    */
-  readonly name?: string;
+  readonly extensionName?: string;
 
   /**
    * The description of the extension.
@@ -338,7 +338,7 @@ export interface ExtensionOptions {
    *
    * @default - A name is generated.
    */
-  readonly name?: string;
+  readonly extensionName?: string;
 
   /**
    * A description of the extension
@@ -432,7 +432,7 @@ export class Extension extends Resource implements IExtension {
       public readonly extensionId = attrs.extensionId;
       public readonly extensionVersionNumber = attrs.extensionVersionNumber;
       public readonly extensionArn = extensionArn;
-      public readonly name = attrs.name;
+      public readonly extensionName = attrs.extensionName;
       public readonly actions = attrs.actions;
       public readonly description = attrs.description;
     }
@@ -450,7 +450,7 @@ export class Extension extends Resource implements IExtension {
   /**
    * The name of the extension.
    */
-  public readonly name?: string;
+  public readonly extensionName?: string;
 
   /**
    * The description of the extension.
@@ -493,11 +493,11 @@ export class Extension extends Resource implements IExtension {
 
   constructor(scope: Construct, id: string, props: ExtensionProps) {
     super(scope, id, {
-      physicalName: props.name,
+      physicalName: props.extensionName,
     });
 
     this.actions = props.actions;
-    this.name = props.name || Names.uniqueResourceName(this, {
+    this.extensionName = props.extensionName || Names.uniqueResourceName(this, {
       maxLength: 64,
       separator: '-',
     });
@@ -510,7 +510,7 @@ export class Extension extends Resource implements IExtension {
         const extensionUri = cur.eventDestination.extensionUri;
         const sourceType = cur.eventDestination.type;
         this.executionRole = cur.executionRole;
-        const name = cur.name ?? `${this.name}-${index}`;
+        const name = cur.name ?? `${this.extensionName}-${index}`;
         cur.actionPoints.forEach((actionPoint) => {
           acc[actionPoint] = [
             {
@@ -525,7 +525,7 @@ export class Extension extends Resource implements IExtension {
         });
         return acc;
       }, {}),
-      name: this.name,
+      name: this.extensionName,
       description: this.description,
       latestVersionNumber: this.latestVersionNumber,
       parameters: this.parameters?.reduce((acc: {[key: string]: CfnExtension.ParameterProperty}, cur: Parameter) => {
@@ -549,7 +549,7 @@ export class Extension extends Resource implements IExtension {
 
   private getExecutionRole(eventDestination: IEventDestination, actionName: string): iam.IRole {
     const versionNumber = this.latestVersionNumber ? this.latestVersionNumber + 1 : 1;
-    const combinedObjects = stringifyObjects(this.name, versionNumber, actionName);
+    const combinedObjects = stringifyObjects(this.extensionName, versionNumber, actionName);
     this.executionRole = new iam.Role(this, `Role${getHash(combinedObjects)}`, {
       roleName: PhysicalName.GENERATE_IF_NEEDED,
       assumedBy: new iam.ServicePrincipal('appconfig.amazonaws.com'),
@@ -570,8 +570,9 @@ export interface IExtension extends IResource {
 
   /**
    * The name of the extension.
+   * @attribute
    */
-  readonly name?: string;
+  readonly extensionName?: string;
 
   /**
    * The description of the extension.
@@ -662,7 +663,7 @@ export class ExtensibleBase implements IExtensible {
   }
 
   private getExtensionForActionPoint(eventDestination: IEventDestination, actionPoint: ActionPoint, options?: ExtensionOptions) {
-    const name = options?.name || this.getExtensionDefaultName();
+    const name = options?.extensionName || this.getExtensionDefaultName();
     const versionNumber = options?.latestVersionNumber ? options?.latestVersionNumber + 1 : 1;
     const extension = new Extension(this.scope, `Extension${this.getExtensionHash(name, versionNumber)}`, {
       actions: [
@@ -673,7 +674,7 @@ export class ExtensibleBase implements IExtensible {
           ],
         }),
       ],
-      name,
+      extensionName: name,
       ...(options?.description ? { description: options.description } : {}),
       ...(options?.latestVersionNumber ? { latestVersionNumber: options.latestVersionNumber } : {}),
       ...(options?.parameters ? { parameters: options.parameters } : {}),
@@ -683,7 +684,7 @@ export class ExtensibleBase implements IExtensible {
 
   private addExtensionAssociation(extension: IExtension) {
     const versionNumber = extension?.latestVersionNumber ? extension?.latestVersionNumber + 1 : 1;
-    const name = extension.name ?? this.getExtensionDefaultName();
+    const name = extension.extensionName ?? this.getExtensionDefaultName();
     new CfnExtensionAssociation(this.scope, `AssociationResource${this.getExtensionAssociationHash(name, versionNumber)}`, {
       extensionIdentifier: extension.extensionId,
       resourceIdentifier: this.resourceArn,

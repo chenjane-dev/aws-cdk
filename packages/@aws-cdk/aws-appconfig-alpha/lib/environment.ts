@@ -25,7 +25,7 @@ export interface EnvironmentAttributes {
    *
    * @default - None.
    */
-  readonly name?: string;
+  readonly environmentName?: string;
 
   /**
    * The description of the environment.
@@ -94,7 +94,7 @@ export interface EnvironmentOptions {
    *
    * @default - A name is generated.
    */
-  readonly name?: string;
+  readonly environmentName?: string;
 
   /**
    * The description of the environment.
@@ -181,7 +181,7 @@ export class Environment extends EnvironmentBase {
     class Import extends EnvironmentBase {
       public readonly application = attrs.application;
       public readonly applicationId = attrs.application.applicationId;
-      public readonly name = attrs.name;
+      public readonly name = attrs.environmentName;
       public readonly environmentId = environmentId;
       public readonly environmentArn = environmentArn;
       public readonly description = attrs.description;
@@ -201,7 +201,7 @@ export class Environment extends EnvironmentBase {
   /**
    * The name of the environment.
    */
-  public readonly name?: string;
+  public readonly environmentName?: string;
 
   /**
    * The description of the environment.
@@ -236,10 +236,10 @@ export class Environment extends EnvironmentBase {
 
   constructor(scope: Construct, id: string, props: EnvironmentProps) {
     super(scope, id, {
-      physicalName: props.name,
+      physicalName: props.environmentName,
     });
 
-    this.name = props.name || Names.uniqueResourceName(this, {
+    this.environmentName = props.environmentName || Names.uniqueResourceName(this, {
       maxLength: 64,
       separator: '-',
     });
@@ -250,7 +250,7 @@ export class Environment extends EnvironmentBase {
 
     const resource = new CfnEnvironment(this, 'Resource', {
       applicationId: this.applicationId,
-      name: this.name,
+      name: this.environmentName,
       description: this.description,
       monitors: this.monitors?.map((monitor, index) => {
         return {
@@ -269,7 +269,7 @@ export class Environment extends EnvironmentBase {
       resource: 'application',
       resourceName: `${this.applicationId}/environment/${this.environmentId}`,
     });
-    this.extensible = new ExtensibleBase(this, this.environmentArn, this.name);
+    this.extensible = new ExtensibleBase(this, this.environmentArn, this.environmentName);
 
     this.application.addExistingEnvironment(this);
   }
@@ -389,8 +389,9 @@ export interface IEnvironment extends IResource {
 
   /**
    * The name of the environment.
+   * @attribute
    */
-  readonly name?: string;
+  readonly environmentName?: string;
 
   /**
    * The description of the environment.

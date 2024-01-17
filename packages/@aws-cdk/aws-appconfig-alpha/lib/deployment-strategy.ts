@@ -18,7 +18,7 @@ export interface DeploymentStrategyProps {
    *
    * @default - A name is generated.
    */
-  readonly name?: string;
+  readonly deploymentStrategyName?: string;
 
   /**
    * A description of the deployment strategy.
@@ -87,7 +87,7 @@ export class DeploymentStrategy extends Resource implements IDeploymentStrategy 
   /**
    * The name of the deployment strategy.
    */
-  public readonly name?: string;
+  public readonly deploymentStrategyName?: string;
 
   /**
    * The deployment duration in minutes of the deployment strategy.
@@ -130,7 +130,7 @@ export class DeploymentStrategy extends Resource implements IDeploymentStrategy 
 
   constructor(scope: Construct, id: string, props: DeploymentStrategyProps) {
     super(scope, id, {
-      physicalName: props.name,
+      physicalName: props.deploymentStrategyName,
     });
 
     this.deploymentDurationInMinutes = props.rolloutStrategy.deploymentDuration.toMinutes();
@@ -138,13 +138,13 @@ export class DeploymentStrategy extends Resource implements IDeploymentStrategy 
     this.description = props.description;
     this.finalBakeTimeInMinutes = props.rolloutStrategy.finalBakeTime?.toMinutes();
     this.growthType = props.rolloutStrategy.growthType;
-    this.name = props.name || Names.uniqueResourceName(this, {
+    this.deploymentStrategyName = props.deploymentStrategyName || Names.uniqueResourceName(this, {
       maxLength: 64,
       separator: '-',
     });
 
     const resource = new CfnDeploymentStrategy(this, 'Resource', {
-      name: this.name,
+      name: this.deploymentStrategyName,
       deploymentDurationInMinutes: this.deploymentDurationInMinutes,
       growthFactor: this.growthFactor,
       replicateTo: 'NONE',
@@ -342,8 +342,9 @@ export abstract class RolloutStrategy {
 export interface IDeploymentStrategy extends IResource {
   /**
    * The name of the deployment strategy.
+   * @attribute
    */
-  readonly name?: string;
+  readonly deploymentStrategyName?: string;
 
   /**
    * The deployment duration in minutes.

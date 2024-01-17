@@ -485,9 +485,9 @@ export class HostedConfiguration extends ConfigurationBase {
 
   protected getDeploymentHash(environment: IEnvironment): string {
     const combinedString = `
-      ${this.application!.name!}
+      ${this.application!.applicationName!}
       ${this.name!}
-      ${environment.name!}
+      ${environment.environmentName!}
       ${this.content}
     `;
     return getHash(combinedString);
@@ -625,9 +625,9 @@ export class SourcedConfiguration extends ConfigurationBase {
 
   protected getDeploymentHash(environment: IEnvironment): string {
     const combinedString = `
-      ${this.application!.name!}
+      ${this.application!.applicationName!}
       ${this.name!}
-      ${environment.name!}
+      ${environment.environmentName!}
       ${this.versionNumber}
       ${this.location.type}
     `;

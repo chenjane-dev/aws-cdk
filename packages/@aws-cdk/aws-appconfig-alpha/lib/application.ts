@@ -23,8 +23,9 @@ export interface IApplication extends cdk.IResource {
 
   /**
    * The name of the application.
+   * @attribute
    */
-  readonly name?: string;
+  readonly applicationName?: string;
 
   /**
    * The ID of the application.
@@ -84,7 +85,7 @@ export interface ApplicationProps {
    *
    * @default - A name is generated.
    */
-  readonly name?: string;
+  readonly applicationName?: string;
 
   /**
    * The description for the application.
@@ -313,7 +314,7 @@ export class Application extends ApplicationBase {
   /**
    * The name of the application.
    */
-  public readonly name?: string;
+  public readonly applicationName?: string;
 
   /**
    * The ID of the application.
@@ -336,13 +337,13 @@ export class Application extends ApplicationBase {
     super(scope, id);
 
     this.description = props.description;
-    this.name = props.name || Names.uniqueResourceName(this, {
+    this.applicationName = props.applicationName || Names.uniqueResourceName(this, {
       maxLength: 64,
       separator: '-',
     });
 
     this._application = new CfnApplication(this, 'Resource', {
-      name: this.name,
+      name: this.applicationName,
       description: this.description,
     });
     this.applicationId = this._application.ref;
@@ -352,7 +353,7 @@ export class Application extends ApplicationBase {
       resourceName: this.applicationId,
     });
 
-    this.extensible = new ExtensibleBase(this, this.applicationArn, this.name);
+    this.extensible = new ExtensibleBase(this, this.applicationArn, this.applicationName);
   }
 }
 
